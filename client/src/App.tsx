@@ -1,59 +1,62 @@
-import { useEffect, useState } from 'react';
-import { Header } from '@/components/Header';
-import { Hero } from '@/components/Hero';
-import { CategoryGrid } from '@/components/CategoryGrid';
-import { ProductGrid } from '@/components/ProductGrid';
-import { Testimonials } from '@/components/Testimonials';
-import { Footer } from '@/components/Footer';
-import { useCart } from '@/hooks/useCart';
-import type { Product } from '@/lib/api';
+import { Routes, Route } from 'react-router-dom';
+import { HomePage } from '@/pages/HomePage';
+import { SignupPage } from '@/pages/SignupPage';
+import { SigninPage } from '@/pages/SigninPage';
+import { BabyProfilePage } from '@/pages/BabyProfilePage';
+import { BabyDashboardPage } from '@/pages/BabyDashboardPage';
+import { CartPage } from '@/pages/CartPage';
+import { OrderConfirmationPage } from '@/pages/OrderConfirmationPage';
+import { AdminLayout } from '@/pages/admin/AdminLayout';
+import { AdminDashboard } from '@/pages/admin/AdminDashboard';
+import { AdminProducts } from '@/pages/admin/AdminProducts';
+import { AdminBundles } from '@/pages/admin/AdminBundles';
+import { AdminTips } from '@/pages/admin/AdminTips';
+import { AdminUsers } from '@/pages/admin/AdminUsers';
+import { AdminOrders } from '@/pages/admin/AdminOrders';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 function App() {
-  const { addToCart, totalItems } = useCart();
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-
-  // Register service worker
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((registration) => {
-          console.log('✅ Service Worker registered:', registration);
-        })
-        .catch((error) => {
-          console.error('❌ Service Worker registration failed:', error);
-        });
-    }
-  }, []);
-
-  const handleAddToCart = (product: Product) => {
-    addToCart(product);
-    setToastMessage(`Added ${product.name} to cart!`);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
-  };
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header cartItemCount={totalItems} />
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/signin" element={<SigninPage />} />
+      <Route path="/cart" element={<CartPage />} />
+      <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <BabyProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/baby-dashboard"
+        element={
+          <ProtectedRoute>
+            <BabyDashboardPage />
+          </ProtectedRoute>
+        }
+      />
       
-      <main className="flex-grow">
-        <Hero />
-        <CategoryGrid />
-        <ProductGrid onAddToCart={handleAddToCart} />
-        <Testimonials />
-      </main>
-
-      <Footer />
-
-      {/* Simple Toast Notification */}
-      {showToast && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate-in slide-in-from-bottom-5 z-50">
-          <p className="font-medium">{toastMessage}</p>
-        </div>
-      )}
-    </div>
+      {/* Admin Routes */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requireAdmin>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<AdminDashboard />} />
+        <Route path="products" element={<AdminProducts />} />
+        <Route path="bundles" element={<AdminBundles />} />
+        <Route path="tips" element={<AdminTips />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="orders" element={<AdminOrders />} />
+      </Route>
+    </Routes>
   );
 }
 

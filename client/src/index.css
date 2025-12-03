@@ -58,3 +58,30 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* Nap Mode Styles */
+html.nap-mode {
+  filter: brightness(0.85) contrast(0.95);
+}
+
+html.nap-mode body {
+  background: linear-gradient(to bottom, #1a1a2e, #16213e);
+  color: #e0e0e0;
+}
+
+html.nap-mode .bg-white {
+  background-color: #2a2a3e !important;
+}
+
+html.nap-mode .text-gray-900 {
+  color: #e0e0e0 !important;
+}
+
+html.nap-mode .text-gray-800 {
+  color: #d0d0d0 !important;
+}
+
+html.nap-mode .border-gray-200,
+html.nap-mode .border-gray-300 {
+  border-color: #3a3a4e !important;
+}

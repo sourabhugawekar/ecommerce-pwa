@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Product } from '@/lib/api';
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 
 interface ProductCardProps {
   product: Product;
@@ -13,6 +14,19 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const { addRecentProduct } = useRecentlyViewed();
+
+  // Track view when component mounts
+  useEffect(() => {
+    addRecentProduct({
+      _id: product._id,
+      name: product.name,
+      price: product.price,
+      category: product.category,
+      emoji: product.emoji,
+      imageUrl: product.imageUrl
+    });
+  }, [product._id]);
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation();

@@ -1,40 +1,78 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export interface CartItem {
-  productId: string;
+  _id: string;
   name: string;
   price: number;
   quantity: number;
   emoji?: string;
+  category?: string;
+  imageUrl?: string;
 }
 
-export function useCart() {
-  const [items, setItems] = useState<CartItem[]>([]);
+const CART_STORAGE_KEY = 'babybliss_cart';
 
-  const addToCart = useCallback((product: { _id: string; name: string; price: number; emoji?: string }) => {
+// Load cart from localStorage
+const loadCart = (): CartItem[] => {
+  try {
+    const stored = localStorage.getItem(CART_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error('Error loading cart from localStorage:', error);
+    return [];
+  }
+};
+
+// Save cart to localStorage
+const saveCart = (items: CartItem[]) => {
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+  } catch (error) {
+    console.error('Error saving cart to localStorage:', error);
+  }
+};
+
+export function useCart() {
+  const [items, setItems] = useState<CartItem[]>(loadCart);
+
+  // Sync to localStorage whenever items change
+  useEffect(() => {
+    saveCart(items);
+  }, [items]);
+
+  const addToCart = useCallback((product: { 
+    _id: string; 
+    name: string; 
+    price: number; 
+    emoji?: string;
+    category?: string;
+    imageUrl?: string;
+  }) => {
     setItems((prevItems) => {
-      const existingItem = prevItems.find(item => item.productId === product._id);
+      const existingItem = prevItems.find(item => item._id === product._id);
       
       if (existingItem) {
         return prevItems.map(item =>
-          item.productId === product._id
+          item._id === product._id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
       
       return [...prevItems, {
-        productId: product._id,
+        _id: product._id,
         name: product.name,
         price: product.price,
         emoji: product.emoji,
+        category: product.category,
+        imageUrl: product.imageUrl,
         quantity: 1
       }];
     });
   }, []);
 
   const removeFromCart = useCallback((productId: string) => {
-    setItems((prevItems) => prevItems.filter(item => item.productId !== productId));
+    setItems((prevItems) => prevItems.filter(item => item._id !== productId));
   }, []);
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
@@ -45,7 +83,7 @@ export function useCart() {
     
     setItems((prevItems) =>
       prevItems.map(item =>
-        item.productId === productId ? { ...item, quantity } : item
+        item._id === productId ? { ...item, quantity } : item
       )
     );
   }, [removeFromCart]);

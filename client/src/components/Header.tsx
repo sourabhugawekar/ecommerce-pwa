@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Menu, ShoppingCart, X } from 'lucide-react';
+import { Menu, ShoppingCart, X, User, LogOut, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
+import { NapModeToggle } from '@/components/NapModeToggle';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HeaderProps {
   cartItemCount: number;
@@ -11,6 +14,8 @@ interface HeaderProps {
 export function Header({ cartItemCount }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -76,13 +81,16 @@ export function Header({ cartItemCount }: HeaderProps) {
             ))}
           </nav>
 
-          {/* Cart Icon */}
+          {/* Cart Icon & User Menu */}
           <div className="flex items-center gap-4">
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <Button variant="ghost" size="icon" className="relative">
+            <NapModeToggle />
+            
+            <Link to="/cart">
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="relative inline-flex items-center justify-center h-10 w-10 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
+              >
                 <ShoppingCart className="h-5 w-5" />
                 <AnimatePresence>
                   {cartItemCount > 0 && (
@@ -106,8 +114,73 @@ export function Header({ cartItemCount }: HeaderProps) {
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </Button>
-            </motion.div>
+              </motion.div>
+            </Link>
+
+            {/* User Menu */}
+            {isAuthenticated ? (
+              <div className="relative hidden md:block">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                >
+                  <User className="h-5 w-5" />
+                </Button>
+                <AnimatePresence>
+                  {showUserMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border"
+                    >
+                      <div className="px-4 py-2 border-b">
+                        <p className="text-sm font-medium">{user?.name}</p>
+                        <p className="text-xs text-gray-500">{user?.email}</p>
+                      </div>
+                      <Link to="/baby-dashboard" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                        <User className="h-4 w-4 inline mr-2" />
+                        Baby Dashboard
+                      </Link>
+                      <Link to="/profile" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                        <Settings className="h-4 w-4 inline mr-2" />
+                        Baby Profile
+                      </Link>
+                      {isAdmin && (
+                        <Link to="/admin" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                          <Settings className="h-4 w-4 inline mr-2" />
+                          Admin Dashboard
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => {
+                          logout();
+                          setShowUserMenu(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-600"
+                      >
+                        <LogOut className="h-4 w-4 inline mr-2" />
+                        Sign Out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <div className="hidden md:flex items-center gap-2">
+                <Link to="/signin">
+                  <Button variant="ghost" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button size="sm" className="bg-gradient-to-r from-pink-500 to-purple-500">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
 
             {/* Mobile Menu Button */}
             <motion.div whileTap={{ scale: 0.9 }}>

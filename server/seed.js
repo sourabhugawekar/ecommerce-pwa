@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Product from './models/Product.js';
+import User from './models/User.js';
+import Bundle from './models/Bundle.js';
+import Tip from './models/Tip.js';
+import Baby from './models/Baby.js';
+import Order from './models/Order.js';
 
 dotenv.config();
 
@@ -653,13 +658,220 @@ const seedDatabase = async () => {
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/babybliss');
     console.log('✅ Connected to MongoDB');
 
-    // Clear existing products
+    // Clear existing data
     await Product.deleteMany({});
-    console.log('🗑️  Cleared existing products');
+    await User.deleteMany({});
+    await Bundle.deleteMany({});
+    await Tip.deleteMany({});
+    await Baby.deleteMany({});
+    await Order.deleteMany({});
+    console.log('🗑️  Cleared existing data');
 
-    // Insert seed data
-    await Product.insertMany(products);
-    console.log(`✅ Successfully seeded ${products.length} products`);
+    // Insert products
+    const insertedProducts = await Product.insertMany(products);
+    console.log(`✅ Seeded ${insertedProducts.length} products`);
+
+    // Create demo users
+    const demoUser = new User({
+      name: 'Demo User',
+      email: 'user@demo.com',
+      passwordHash: 'password123',
+      role: 'user',
+      phoneNumber: '+91 98765 43210'
+    });
+    await demoUser.save();
+
+    const adminUser = new User({
+      name: 'Admin User',
+      email: 'admin@demo.com',
+      passwordHash: 'admin123',
+      role: 'admin',
+      phoneNumber: '+91 98765 00000'
+    });
+    await adminUser.save();
+    console.log('✅ Created demo users');
+
+    // Create baby profile for demo user
+    const demoBaby = new Baby({
+      userId: demoUser._id,
+      babyName: 'Emma',
+      dateOfBirth: new Date('2024-06-15'),
+      gender: 'female',
+      weight: 7.5,
+      height: 65,
+      skinType: 'sensitive',
+      allergyNote: 'None known'
+    });
+    await demoBaby.save();
+    console.log('✅ Created demo baby profile');
+
+    // Create bundles
+    const bundles = [
+      {
+        name: 'Newborn Starter Pack',
+        description: 'Everything you need for your newborn baby',
+        productIds: insertedProducts.slice(0, 6).map(p => p._id),
+        originalPrice: 4000,
+        bundlePrice: 3200,
+        discount: 20,
+        imageUrl: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400&h=300&fit=crop',
+        ageRange: '0-3 months',
+        isActive: true
+      },
+      {
+        name: 'Hospital Bag Essentials',
+        description: 'Must-have items for the hospital',
+        productIds: insertedProducts.slice(12, 18).map(p => p._id),
+        originalPrice: 3500,
+        bundlePrice: 2800,
+        discount: 20,
+        imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&h=300&fit=crop',
+        ageRange: '0-3 months',
+        isActive: true
+      },
+      {
+        name: 'Feeding Time Bundle',
+        description: 'Complete feeding solution for your baby',
+        productIds: insertedProducts.slice(24, 30).map(p => p._id),
+        originalPrice: 5000,
+        bundlePrice: 4000,
+        discount: 20,
+        imageUrl: 'https://images.unsplash.com/photo-1587049352846-4a222e784422?w=400&h=300&fit=crop',
+        ageRange: '3-6 months',
+        isActive: true
+      },
+      {
+        name: 'Playtime Fun Pack',
+        description: 'Educational and entertaining toys',
+        productIds: insertedProducts.slice(36, 42).map(p => p._id),
+        originalPrice: 4500,
+        bundlePrice: 3600,
+        discount: 20,
+        imageUrl: 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=400&h=300&fit=crop',
+        ageRange: '6-12 months',
+        isActive: true
+      }
+    ];
+
+    await Bundle.insertMany(bundles);
+    console.log(`✅ Created ${bundles.length} bundles`);
+
+    // Create parenting tips
+    const tips = [
+      {
+        title: 'Skin-to-Skin Contact',
+        body: 'Spend time doing skin-to-skin contact with your newborn. This helps regulate their temperature, heart rate, and promotes bonding.',
+        ageRange: '0-3 months',
+        category: 'health',
+        isActive: true
+      },
+      {
+        title: 'Tummy Time Benefits',
+        body: 'Start tummy time early! It strengthens neck, shoulder, and arm muscles. Begin with 3-5 minutes, 2-3 times a day.',
+        ageRange: '0-3 months',
+        category: 'development',
+        isActive: true
+      },
+      {
+        title: 'Safe Sleep Practices',
+        body: 'Always place your baby on their back to sleep. Keep the crib clear of blankets, pillows, and toys to reduce SIDS risk.',
+        ageRange: 'all',
+        category: 'safety',
+        isActive: true
+      },
+      {
+        title: 'Introducing Solid Foods',
+        body: 'Around 6 months, start with single-ingredient purees like mashed banana or sweet potato. Watch for allergic reactions.',
+        ageRange: '6-12 months',
+        category: 'nutrition',
+        isActive: true
+      },
+      {
+        title: 'Establishing Sleep Routine',
+        body: 'Create a consistent bedtime routine: bath, massage, story, and lullaby. This helps signal sleep time to your baby.',
+        ageRange: '3-6 months',
+        category: 'sleep',
+        isActive: true
+      },
+      {
+        title: 'Baby Massage',
+        body: 'Gentle massage can soothe your baby, aid digestion, and improve sleep. Use baby-safe oil and gentle strokes.',
+        ageRange: 'all',
+        category: 'health',
+        isActive: true
+      },
+      {
+        title: 'Reading to Baby',
+        body: 'It\'s never too early to read! Use colorful board books and engage with different voices to stimulate language development.',
+        ageRange: 'all',
+        category: 'development',
+        isActive: true
+      },
+      {
+        title: 'Diaper Rash Prevention',
+        body: 'Change diapers frequently, clean gently, and let skin air dry. Apply barrier cream if needed. Choose breathable diapers.',
+        ageRange: 'all',
+        category: 'health',
+        isActive: true
+      },
+      {
+        title: 'Teething Relief',
+        body: 'Offer cold teething rings, massage gums gently, and maintain good oral hygiene. Consult pediatrician if severe discomfort.',
+        ageRange: '3-6 months',
+        category: 'health',
+        isActive: true
+      },
+      {
+        title: 'Encouraging Crawling',
+        body: 'Place toys just out of reach to motivate movement. Create a safe space for exploration and celebrate small achievements!',
+        ageRange: '6-12 months',
+        category: 'development',
+        isActive: true
+      }
+    ];
+
+    await Tip.insertMany(tips);
+    console.log(`✅ Created ${tips.length} parenting tips`);
+
+    // Create a demo order
+    const demoOrder = new Order({
+      userId: demoUser._id,
+      items: [
+        {
+          productId: insertedProducts[0]._id,
+          name: insertedProducts[0].name,
+          price: insertedProducts[0].price,
+          quantity: 2,
+          imageUrl: insertedProducts[0].imageUrl
+        },
+        {
+          productId: insertedProducts[12]._id,
+          name: insertedProducts[12].name,
+          price: insertedProducts[12].price,
+          quantity: 1,
+          imageUrl: insertedProducts[12].imageUrl
+        }
+      ],
+      totalAmount: (insertedProducts[0].price * 2) + insertedProducts[12].price,
+      status: 'delivered',
+      shippingAddress: {
+        fullName: 'Demo User',
+        phone: '+91 98765 43210',
+        addressLine1: '123 Main Street',
+        city: 'Mumbai',
+        state: 'Maharashtra',
+        zipCode: '400001',
+        country: 'India'
+      },
+      paymentMethod: 'demo-cod'
+    });
+    await demoOrder.save();
+    console.log('✅ Created demo order');
+
+    console.log('\n🎉 Database seeding completed successfully!');
+    console.log('\n📝 Demo Accounts:');
+    console.log('   User: user@demo.com / password123');
+    console.log('   Admin: admin@demo.com / admin123');
 
     process.exit(0);
   } catch (error) {
